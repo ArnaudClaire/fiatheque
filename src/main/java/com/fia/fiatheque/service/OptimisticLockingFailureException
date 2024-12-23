@@ -1,0 +1,25 @@
+import org.springframework.dao.OptimisticLockingFailureException;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+public class VoitureService {
+
+    @Transactional
+    public Voiture associerVoiturePilote(Long voitureId, Long piloteId) {
+        try {
+            // Récupérez la voiture et le pilote à partir de la base de données
+            Voiture voiture = voitureRepository.findById(voitureId).orElseThrow(() -> new RuntimeException("Voiture non trouvée"));
+            Pilote pilote = piloteRepository.findById(piloteId).orElseThrow(() -> new RuntimeException("Pilote non trouvé"));
+
+            // Assurez-vous que le pilote est bien associé à la voiture
+            voiture.setPilote(pilote);
+
+            // Enregistrez les modifications
+            return voitureRepository.save(voiture);
+        } catch (OptimisticLockingFailureException e) {
+            // En cas de conflit de version, vous pouvez capturer l'exception
+            throw new RuntimeException("Conflit de mise à jour. L'entité a été modifiée par une autre transaction. Veuillez réessayer.");
+        }
+    }
+}
